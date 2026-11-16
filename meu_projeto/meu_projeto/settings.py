@@ -85,3 +85,10 @@ DOWNLOAD_DELAY = 1
 
 # Set settings whose default value is deprecated to a future-proof value
 FEED_EXPORT_ENCODING = "utf-8"
+
+ITEM_PIPELINES = {
+    # O valor numérico (300) indica a prioridade (vai de 0 a 1000).
+    # Quanto menor o número, mais cedo a pipeline é executada.
+    'meu_projeto.pipelines.ValidacaoLivroPipeline': 300,
+    'meu_projeto.pipelines.SQLitePipeline': 400,
+}
