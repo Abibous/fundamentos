@@ -21,3 +21,10 @@ class CatalogoSpider(scrapy.Spider):
                 "preco": preco,
                 "disponibilidade": disponibilidade,
             }
+        
+         # 2. Busca o link da próxima página
+        proxima_pagina = response.css("li.next a::attr(href)").get()
+
+        # 3. Se o link existir, segue o link chamando este mesmo método parse
+        if proxima_pagina is not None:
+            yield response.follow(proxima_pagina, callback=self.parse)
