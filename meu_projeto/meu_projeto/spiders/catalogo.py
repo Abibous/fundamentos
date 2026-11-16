@@ -1,30 +1,28 @@
 import scrapy
+# Importamos o Item Loader do Scrapy e o nosso Item estruturado
+from scrapy.loader import ItemLoader
+from meu_projeto.items import LivroItem
 
-class CatalogoSpider(scrapy.Spider):
+class CatalogoLoaderSpider(scrapy.Spider):
     name = "catalogo"
     start_urls = ["http://books.toscrape.com/"]
 
     def parse(self, response):
-        # Localiza e seleciona todos os blocos de livros da vitrine
         livros = response.css("article.product_pod")
 
         for livro in livros:
-            # Extrai os dados internos usando seletores locais (indicados pelo ponto inicial ".")
-            titulo = livro.css("h3 a::attr(title)").get()
-            preco = livro.css("p.price_color::text").get()
-            # Extrai o texto de disponibilidade em estoque (junta os pedacos de texto e remove espacos extras)
-            disponibilidade = "".join(livro.css("p.instock.availability::text").getall()).strip()
+            # 1. Instanciamos o Loader passando o Item desejado e o seletor correspondente
+            loader = ItemLoader(item=LivroItem(), selector=livro)
 
-            # Entrega os dados coletados estruturados
-            yield {
-                "titulo": titulo,
-                "preco": preco,
-                "disponibilidade": disponibilidade,
-            }
-        
-         # 2. Busca o link da próxima página
+            # 2. Adicionamos os caminhos CSS aos respectivos campos
+            loader.add_css("titulo", "h3 a::attr(title)")
+            loader.add_css("preco", "p.price_color::text")
+            loader.add_css("disponibilidade", "p.instock.availability::text")
+
+            # 3. Retornamos o item totalmente carregado e limpo
+            yield loader.load_item()
+
+        # 4. Busca o link da proxima pagina e, se existir, segue para ela
         proxima_pagina = response.css("li.next a::attr(href)").get()
-
-        # 3. Se o link existir, segue o link chamando este mesmo método parse
         if proxima_pagina is not None:
             yield response.follow(proxima_pagina, callback=self.parse)
